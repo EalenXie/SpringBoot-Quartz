@@ -41,20 +41,20 @@ public class DynamicJob implements Job {
         logger.info("Running Job parameter : {} ", parameter);
         logger.info("Running Job vmParam : {} ", vmParam);
         long startTime = System.currentTimeMillis();
-        if (!StringUtils.getStringUtil.isEmpty(jarPath)) {
+        if (!StringUtils.isEmpty(jarPath)) {
             File jar = new File(jarPath);
             if (jar.exists()) {
                 ProcessBuilder processBuilder = new ProcessBuilder();
                 processBuilder.directory(jar.getParentFile());
                 List<String> commands = new ArrayList<>();
                 commands.add("java");
-                if (!StringUtils.getStringUtil.isEmpty(vmParam)) commands.add(vmParam);
+                if (!StringUtils.isEmpty(vmParam)) commands.add(vmParam);
                 commands.add("-jar");
                 commands.add(jarPath);
-                if (!StringUtils.getStringUtil.isEmpty(parameter)) commands.add(parameter);
+                if (!StringUtils.isEmpty(parameter)) commands.add(parameter);
                 processBuilder.command(commands);
                 logger.info("Running Job details as follows >>>>>>>>>>>>>>>>>>>>: ");
-                logger.info("Running Job commands : {}  ", StringUtils.getStringUtil.getListString(commands));
+                logger.info("Running Job commands : {}  ", StringUtils.getListString(commands));
                 try {
                     Process process = processBuilder.start();
                     logProcess(process.getInputStream(), process.getErrorStream());

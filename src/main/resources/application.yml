@@ -2,12 +2,13 @@ quartz:
   enabled: true
 server:
   port: 9090
-
 spring:
+  application:
+    name: Spring-Quartz-Scheduler                                       #Quartz调度中心
   datasource:
-    url: jdbc:mysql://localhost:3306/spring_quartz
+    url: jdbc:mysql://localhost:3306/yourdatabase
     username: yourname
-    password: yourpassword
+    password: yourpass
     tomcat:
       initialSize: 20
       maxActive: 100

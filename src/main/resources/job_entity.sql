@@ -1,5 +1,3 @@
-
-
 SET FOREIGN_KEY_CHECKS=0;
 DROP TABLE IF EXISTS `job_entity`;
 CREATE TABLE `job_entity` (
@@ -14,7 +12,6 @@ CREATE TABLE `job_entity` (
   `status` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8;
-
 INSERT INTO `job_entity` VALUES ('1',  'first', 'helloworld', '0/2 * * * * ? ', '1', '第一个', '', null, 'OPEN');
 INSERT INTO `job_entity` VALUES ('2',  'second', 'helloworld', '0/5 * * * * ? ', '2', '第二个', null, null, 'OPEN');
 INSERT INTO `job_entity` VALUES ('4',  'third', 'helloworld', '0/15 * * * * ? ', '3', '第三个', null, null, 'OPEN');
