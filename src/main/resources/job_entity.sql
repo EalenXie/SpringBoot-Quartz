@@ -16,4 +16,4 @@ INSERT INTO `job_entity` VALUES ('1',  'first', 'helloworld', '0/2 * * * * ? ', 
 INSERT INTO `job_entity` VALUES ('2',  'second', 'helloworld', '0/5 * * * * ? ', '2', '第二个', null, null, 'OPEN');
 INSERT INTO `job_entity` VALUES ('4',  'third', 'helloworld', '0/15 * * * * ? ', '3', '第三个', null, null, 'OPEN');
 INSERT INTO `job_entity` VALUES ('5',  'four', 'helloworld', '0 0/1 * * * ? *', '4', '第四个', null, null, 'CLOSE');
-INSERT INTO `job_entity` VALUES ('6',  'OLAY Job', 'Nomal', '0 0/2 * * * ?', '5', '第五个', null, 'C:\\EalenXie\\Download\\JDE-Order-1.0-SNAPSHOT.jar', 'CLOSE');
+INSERT INTO `job_entity` VALUES ('6',  'OLAY Job', 'Nomal', '0 0/2 * * * ?', '', '第五个', null, 'C:\\EalenXie\\Download\\JDE-Order-1.0-SNAPSHOT.jar', 'CLOSE');
