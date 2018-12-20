@@ -23,7 +23,7 @@ public class JobController {
 
     private static Logger logger = LoggerFactory.getLogger(JobController.class);
     @Autowired
-    private SchedulerFactoryBean factory;
+    private SchedulerFactoryBean schedulerFactoryBean;
     @Autowired
     private DynamicJobService jobService;
 
@@ -47,7 +47,7 @@ public class JobController {
         if (entity == null) return "error: id is not exist ";
         TriggerKey triggerKey = new TriggerKey(entity.getName(), entity.getGroup());
         JobKey jobKey = jobService.getJobKey(entity);
-        Scheduler scheduler = factory.getScheduler();
+        Scheduler scheduler = schedulerFactoryBean.getScheduler();
         try {
             scheduler.unscheduleJob(triggerKey);
             scheduler.deleteJob(jobKey);
@@ -84,7 +84,7 @@ public class JobController {
      * 重新启动所有的job
      */
     private void reStartAllJobs() throws SchedulerException {
-        Scheduler scheduler = factory.getScheduler();
+        Scheduler scheduler = schedulerFactoryBean.getScheduler();
         Set<JobKey> set = scheduler.getJobKeys(GroupMatcher.anyGroup());
         for (JobKey jobKey : set) {
             scheduler.deleteJob(jobKey);
@@ -95,7 +95,8 @@ public class JobController {
             JobKey jobKey = jobService.getJobKey(job);
             JobDetail jobDetail = jobService.geJobDetail(jobKey, job.getDescription(), map);
             if (job.getStatus().equals("OPEN")) scheduler.scheduleJob(jobDetail, jobService.getTrigger(job));
-            else logger.info("Job jump name : {} , Because {} status is {}", job.getName(), job.getName(), job.getStatus());
+            else
+                logger.info("Job jump name : {} , Because {} status is {}", job.getName(), job.getName(), job.getStatus());
         }
     }
 
