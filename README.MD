@@ -39,7 +39,7 @@ SpringBoot整合Quartz作为调度中心使用完整实例
 
 #### 3. 原创不易，感谢支持 :  
 
-    本例博客说明链接 : https://www.cnblogs.com/ealenxie/p/9134602.html              
+本例博客说明链接 : https://www.cnblogs.com/ealenxie/p/9134602.html              
     
 
 
