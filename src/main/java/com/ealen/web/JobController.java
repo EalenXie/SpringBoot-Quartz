@@ -21,7 +21,7 @@ import java.util.Set;
 @RestController
 public class JobController {
 
-    private static Logger logger = LoggerFactory.getLogger(JobController.class);
+    private static final Logger logger = LoggerFactory.getLogger(JobController.class);
     @Autowired
     private SchedulerFactoryBean schedulerFactoryBean;
     @Autowired
@@ -45,11 +45,11 @@ public class JobController {
         String result;
         JobEntity entity = jobService.getJobEntityById(id);
         if (entity == null) return "error: id is not exist ";
-        TriggerKey triggerKey = new TriggerKey(entity.getName(), entity.getGroup());
-        JobKey jobKey = jobService.getJobKey(entity);
-        Scheduler scheduler = schedulerFactoryBean.getScheduler();
-        try {
-            scheduler.unscheduleJob(triggerKey);
+        synchronized (logger) {
+            JobKey jobKey = jobService.getJobKey(entity);
+            Scheduler scheduler = schedulerFactoryBean.getScheduler();
+            scheduler.pauseJob(jobKey);
+            scheduler.unscheduleJob(TriggerKey.triggerKey(jobKey.getName(), jobKey.getGroup()));
             scheduler.deleteJob(jobKey);
             JobDataMap map = jobService.getJobDataMap(entity);
             JobDetail jobDetail = jobService.geJobDetail(jobKey, entity.getDescription(), map);
@@ -60,8 +60,6 @@ public class JobController {
                 result = "Refresh Job : " + entity.getName() + "\t jarPath: " + entity.getJarPath() + " failed ! , " +
                         "Because the Job status is " + entity.getStatus();
             }
-        } catch (SchedulerException e) {
-            result = "Error while Refresh " + e.getMessage();
         }
         return result;
     }
@@ -84,19 +82,23 @@ public class JobController {
      * 重新启动所有的job
      */
     private void reStartAllJobs() throws SchedulerException {
-        Scheduler scheduler = schedulerFactoryBean.getScheduler();
-        Set<JobKey> set = scheduler.getJobKeys(GroupMatcher.anyGroup());
-        for (JobKey jobKey : set) {
-            scheduler.deleteJob(jobKey);
-        }
-        for (JobEntity job : jobService.loadJobs()) {
-            logger.info("Job register name : {} , group : {} , cron : {}", job.getName(), job.getGroup(), job.getCron());
-            JobDataMap map = jobService.getJobDataMap(job);
-            JobKey jobKey = jobService.getJobKey(job);
-            JobDetail jobDetail = jobService.geJobDetail(jobKey, job.getDescription(), map);
-            if (job.getStatus().equals("OPEN")) scheduler.scheduleJob(jobDetail, jobService.getTrigger(job));
-            else
-                logger.info("Job jump name : {} , Because {} status is {}", job.getName(), job.getName(), job.getStatus());
+        synchronized (logger) {                                                         //只允许一个线程进入操作
+            Scheduler scheduler = schedulerFactoryBean.getScheduler();
+            Set<JobKey> set = scheduler.getJobKeys(GroupMatcher.anyGroup());
+            scheduler.pauseJobs(GroupMatcher.anyGroup());                               //暂停所有JOB
+            for (JobKey jobKey : set) {                                                 //删除从数据库中注册的所有JOB
+                scheduler.unscheduleJob(TriggerKey.triggerKey(jobKey.getName(), jobKey.getGroup()));
+                scheduler.deleteJob(jobKey);
+            }
+            for (JobEntity job : jobService.loadJobs()) {                               //从数据库中注册的所有JOB
+                logger.info("Job register name : {} , group : {} , cron : {}", job.getName(), job.getGroup(), job.getCron());
+                JobDataMap map = jobService.getJobDataMap(job);
+                JobKey jobKey = jobService.getJobKey(job);
+                JobDetail jobDetail = jobService.geJobDetail(jobKey, job.getDescription(), map);
+                if (job.getStatus().equals("OPEN")) scheduler.scheduleJob(jobDetail, jobService.getTrigger(job));
+                else
+                    logger.info("Job jump name : {} , Because {} status is {}", job.getName(), job.getName(), job.getStatus());
+            }
         }
     }
 
