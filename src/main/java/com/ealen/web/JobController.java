@@ -111,22 +111,27 @@ public class JobController {
     public String modifyJob(@RequestBody @Validated ModifyCronDTO dto) throws Exception {
         if (!CronExpression.isValidExpression(dto.getCron())) return "cron is invalid !";
         synchronized (logger) {
-            JobEntity entity = jobService.getJobEntityById(dto.getId());
-            JobKey jobKey = jobService.getJobKey(entity);
-            TriggerKey triggerKey = new TriggerKey(jobKey.getName(), jobKey.getGroup());
-            Scheduler scheduler = schedulerFactoryBean.getScheduler();
-            CronTrigger cronTrigger = (CronTrigger) scheduler.getTrigger(triggerKey);
-            String oldCron = cronTrigger.getCronExpression();
-            if (!oldCron.equalsIgnoreCase(dto.getCron())) {
-                entity.setCron(dto.getCron());
-                CronScheduleBuilder cronScheduleBuilder = CronScheduleBuilder.cronSchedule(dto.getCron());
-                CronTrigger trigger = TriggerBuilder.newTrigger()
-                        .withIdentity(jobKey.getName(), jobKey.getGroup())
-                        .withSchedule(cronScheduleBuilder)
-                        .usingJobData(jobService.getJobDataMap(entity))
-                        .build();
-                scheduler.rescheduleJob(triggerKey, trigger);
-                repository.save(entity);
+            JobEntity job = jobService.getJobEntityById(dto.getId());
+            if (job.getStatus().equals("OPEN")) {
+                JobKey jobKey = jobService.getJobKey(job);
+                TriggerKey triggerKey = new TriggerKey(jobKey.getName(), jobKey.getGroup());
+                Scheduler scheduler = schedulerFactoryBean.getScheduler();
+                CronTrigger cronTrigger = (CronTrigger) scheduler.getTrigger(triggerKey);
+                String oldCron = cronTrigger.getCronExpression();
+                if (!oldCron.equalsIgnoreCase(dto.getCron())) {
+                    job.setCron(dto.getCron());
+                    CronScheduleBuilder cronScheduleBuilder = CronScheduleBuilder.cronSchedule(dto.getCron());
+                    CronTrigger trigger = TriggerBuilder.newTrigger()
+                            .withIdentity(jobKey.getName(), jobKey.getGroup())
+                            .withSchedule(cronScheduleBuilder)
+                            .usingJobData(jobService.getJobDataMap(job))
+                            .build();
+                    scheduler.rescheduleJob(triggerKey, trigger);
+                    repository.save(job);
+                }
+            } else {
+                logger.info("Job jump name : {} , Because {} status is {}", job.getName(), job.getName(), job.getStatus());
+                return "modify failure , because the job is closed";
             }
         }
         return "modify success";
