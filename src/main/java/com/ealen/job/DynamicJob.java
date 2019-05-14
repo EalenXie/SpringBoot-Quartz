@@ -1,14 +1,15 @@
 package com.ealen.job;
 
-import com.ealen.util.StringUtils;
+import com.ealen.util.StringUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Created by EalenXie on 2018/6/4 14:29
@@ -18,11 +19,12 @@ import java.util.List;
  */
 @DisallowConcurrentExecution
 @Component
+@Slf4j
 public class DynamicJob implements Job {
-    private Logger logger = LoggerFactory.getLogger(DynamicJob.class);
 
     /**
      * 核心方法,Quartz Job真正的执行逻辑.
+     *
      * @param executorContext executorContext JobExecutionContext中封装有Quartz运行所需要的所有信息
      * @throws JobExecutionException execute()方法只允许抛出JobExecutionException异常
      */
@@ -33,13 +35,13 @@ public class DynamicJob implements Job {
         String jarPath = map.getString("jarPath");
         String parameter = map.getString("parameter");
         String vmParam = map.getString("vmParam");
-        logger.info("Running Job name : {} ", map.getString("name"));
-        logger.info("Running Job description : " + map.getString("jobDescription"));
-        logger.info("Running Job group: {} ", map.getString("group"));
-        logger.info("Running Job cron : " + map.getString("cronExpression"));
-        logger.info("Running Job jar path : {} ", jarPath);
-        logger.info("Running Job parameter : {} ", parameter);
-        logger.info("Running Job vmParam : {} ", vmParam);
+        log.info("Running Job name : {} ", map.getString("name"));
+        log.info("Running Job description : {}", map.getString("jobDescription"));
+        log.info("Running Job group: {} ", map.getString("group"));
+        log.info(String.format("Running Job cron : %s", map.getString("cronExpression")));
+        log.info("Running Job jar path : {} ", jarPath);
+        log.info("Running Job parameter : {} ", parameter);
+        log.info("Running Job vmParam : {} ", vmParam);
         long startTime = System.currentTimeMillis();
         if (!StringUtils.isEmpty(jarPath)) {
             File jar = new File(jarPath);
@@ -53,8 +55,8 @@ public class DynamicJob implements Job {
                 commands.add(jarPath);
                 if (!StringUtils.isEmpty(parameter)) commands.add(parameter);
                 processBuilder.command(commands);
-                logger.info("Running Job details as follows >>>>>>>>>>>>>>>>>>>>: ");
-                logger.info("Running Job commands : {}  ", StringUtils.getListString(commands));
+                log.info("Running Job details as follows >>>>>>>>>>>>>>>>>>>>: ");
+                log.info("Running Job commands : {}  ", StringUtil.getListString(commands));
                 try {
                     Process process = processBuilder.start();
                     logProcess(process.getInputStream(), process.getErrorStream());
@@ -64,7 +66,7 @@ public class DynamicJob implements Job {
             } else throw new JobExecutionException("Job Jar not found >>  " + jarPath);
         }
         long endTime = System.currentTimeMillis();
-        logger.info(">>>>>>>>>>>>> Running Job has been completed , cost time :  " + (endTime - startTime) + "ms\n");
+        log.info(">>>>>>>>>>>>> Running Job has been completed , cost time : {}ms\n ", (endTime - startTime));
     }
 
     //记录Job执行内容
@@ -73,8 +75,8 @@ public class DynamicJob implements Job {
         String errorLine;
         BufferedReader inputReader = new BufferedReader(new InputStreamReader(inputStream));
         BufferedReader errorReader = new BufferedReader(new InputStreamReader(errorStream));
-        while ((inputLine = inputReader.readLine()) != null) logger.info(inputLine);
-        while ((errorLine = errorReader.readLine()) != null) logger.error(errorLine);
+        while (Objects.nonNull(inputLine = inputReader.readLine())) log.info(inputLine);
+        while (Objects.nonNull(errorLine = errorReader.readLine())) log.error(errorLine);
     }
 
 }
