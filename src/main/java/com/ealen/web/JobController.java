@@ -1,16 +1,18 @@
 package com.ealen.web;
 
+import com.ealen.dao.JobEntityRepository;
 import com.ealen.entity.JobEntity;
 import com.ealen.service.DynamicJobService;
+import com.ealen.web.dto.ModifyCronDTO;
 import org.quartz.*;
+import org.quartz.impl.JobDetailImpl;
 import org.quartz.impl.matchers.GroupMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.PostConstruct;
 import java.util.Set;
@@ -27,6 +29,9 @@ public class JobController {
     @Autowired
     private DynamicJobService jobService;
 
+    @Autowired
+    private JobEntityRepository repository;
+
     //初始化启动所有的Job
     @PostConstruct
     public void initialize() {
@@ -34,8 +39,7 @@ public class JobController {
             reStartAllJobs();
             logger.info("INIT SUCCESS");
         } catch (SchedulerException e) {
-            logger.info("INIT EXCEPTION : " + e.getMessage());
-            e.printStackTrace();
+            logger.error("printStackTrace ", e);
         }
     }
 
@@ -52,7 +56,7 @@ public class JobController {
             scheduler.unscheduleJob(TriggerKey.triggerKey(jobKey.getName(), jobKey.getGroup()));
             scheduler.deleteJob(jobKey);
             JobDataMap map = jobService.getJobDataMap(entity);
-            JobDetail jobDetail = jobService.geJobDetail(jobKey, entity.getDescription(), map);
+            JobDetail jobDetail = jobService.getJobDetail(jobKey, entity.getDescription(), map);
             if (entity.getStatus().equals("OPEN")) {
                 scheduler.scheduleJob(jobDetail, jobService.getTrigger(entity));
                 result = "Refresh Job : " + entity.getName() + "\t jarPath: " + entity.getJarPath() + " success !";
@@ -91,15 +95,41 @@ public class JobController {
                 scheduler.deleteJob(jobKey);
             }
             for (JobEntity job : jobService.loadJobs()) {                               //从数据库中注册的所有JOB
-                logger.info("Job register name : {} , group : {} , cron : {}", job.getName(), job.getGroup(), job.getCron());
+                logger.info("Job register name : {} , group : {} , cron : {}", job.getName(), job.getJobGroup(), job.getCron());
                 JobDataMap map = jobService.getJobDataMap(job);
                 JobKey jobKey = jobService.getJobKey(job);
-                JobDetail jobDetail = jobService.geJobDetail(jobKey, job.getDescription(), map);
+                JobDetail jobDetail = jobService.getJobDetail(jobKey, job.getDescription(), map);
                 if (job.getStatus().equals("OPEN")) scheduler.scheduleJob(jobDetail, jobService.getTrigger(job));
                 else
                     logger.info("Job jump name : {} , Because {} status is {}", job.getName(), job.getName(), job.getStatus());
             }
         }
+    }
+
+    //修改某个Job执行的Cron
+    @PostMapping("/modifyJob")
+    public String modifyJob(@RequestBody @Validated ModifyCronDTO dto) throws Exception {
+        if (!CronExpression.isValidExpression(dto.getCron())) return "cron is invalid !";
+        synchronized (logger) {
+            JobEntity entity = jobService.getJobEntityById(dto.getId());
+            JobKey jobKey = jobService.getJobKey(entity);
+            TriggerKey triggerKey = new TriggerKey(jobKey.getName(), jobKey.getGroup());
+            Scheduler scheduler = schedulerFactoryBean.getScheduler();
+            CronTrigger cronTrigger = (CronTrigger) scheduler.getTrigger(triggerKey);
+            String oldCron = cronTrigger.getCronExpression();
+            if (!oldCron.equalsIgnoreCase(dto.getCron())) {
+                entity.setCron(dto.getCron());
+                CronScheduleBuilder cronScheduleBuilder = CronScheduleBuilder.cronSchedule(dto.getCron());
+                CronTrigger trigger = TriggerBuilder.newTrigger()
+                        .withIdentity(jobKey.getName(), jobKey.getGroup())
+                        .withSchedule(cronScheduleBuilder)
+                        .usingJobData(jobService.getJobDataMap(entity))
+                        .build();
+                scheduler.rescheduleJob(triggerKey, trigger);
+                repository.save(entity);
+            }
+        }
+        return "modify success";
     }
 
 

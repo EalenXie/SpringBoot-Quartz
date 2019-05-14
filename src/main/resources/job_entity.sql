@@ -3,7 +3,7 @@ DROP TABLE IF EXISTS `job_entity`;
 CREATE TABLE `job_entity` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) DEFAULT NULL,
-  `group` varchar(255) DEFAULT NULL,
+  `job_group` varchar(255) DEFAULT NULL,
   `cron` varchar(255) DEFAULT NULL,
   `parameter` varchar(255) NOT NULL,
   `description` varchar(255) DEFAULT NULL,

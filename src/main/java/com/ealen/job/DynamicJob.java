@@ -34,7 +34,7 @@ public class DynamicJob implements Job {
         String parameter = map.getString("parameter");
         String vmParam = map.getString("vmParam");
         logger.info("Running Job name : {} ", map.getString("name"));
-        logger.info("Running Job description : " + map.getString("JobDescription"));
+        logger.info("Running Job description : " + map.getString("jobDescription"));
         logger.info("Running Job group: {} ", map.getString("group"));
         logger.info("Running Job cron : " + map.getString("cronExpression"));
         logger.info("Running Job jar path : {} ", jarPath);

@@ -15,13 +15,11 @@ public class JobEntity implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String name;          //job名称
-    private String group;         //job组名
+    private String jobGroup;      //job组名
     private String cron;          //执行的cron
     private String parameter;     //job的参数
     private String description;   //job描述信息
-    @Column(name = "vm_param")
     private String vmParam;       //vm参数
-    @Column(name = "jar_path")
     private String jarPath;       //job的jar路径
     private String status;        //job的执行状态,这里我设置为OPEN/CLOSE且只有该值为OPEN才会执行该Job
 
@@ -44,12 +42,12 @@ public class JobEntity implements Serializable {
         this.name = name;
     }
 
-    public String getGroup() {
-        return group;
+    public String getJobGroup() {
+        return jobGroup;
     }
 
-    public void setGroup(String group) {
-        this.group = group;
+    public void setJobGroup(String jobGroup) {
+        this.jobGroup = jobGroup;
     }
 
     public String getCron() {
@@ -105,7 +103,7 @@ public class JobEntity implements Serializable {
         return "JobEntity{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
-                ", group='" + group + '\'' +
+                ", jobGroup='" + jobGroup + '\'' +
                 ", cron='" + cron + '\'' +
                 ", parameter='" + parameter + '\'' +
                 ", description='" + description + '\'' +
@@ -119,7 +117,7 @@ public class JobEntity implements Serializable {
     public JobEntity(Builder builder) {
         id = builder.id;
         name = builder.name;
-        group = builder.group;
+        jobGroup = builder.jobGroup;
         cron = builder.cron;
         parameter = builder.parameter;
         description = builder.description;
@@ -131,7 +129,7 @@ public class JobEntity implements Serializable {
     public static class Builder {
         private Integer id;
         private String name = "";          //job名称
-        private String group = "";         //job组名
+        private String jobGroup = "";         //job组名
         private String cron = "";          //执行的cron
         private String parameter = "";     //job的参数
         private String description = "";   //job描述信息
@@ -150,7 +148,7 @@ public class JobEntity implements Serializable {
         }
 
         public Builder withGroup(String g) {
-            group = g;
+            jobGroup = g;
             return this;
         }
 
