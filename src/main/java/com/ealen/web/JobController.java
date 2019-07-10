@@ -37,7 +37,7 @@ public class JobController {
     public void initialize() {
         try {
             reStartAllJobs();
-            log.info("INIT SUCCESS");
+            log.info("init success");
         } catch (SchedulerException e) {
             log.error("printStackTrace ", e);
         }
@@ -75,9 +75,9 @@ public class JobController {
         String result;
         try {
             reStartAllJobs();
-            result = "SUCCESS";
+            result = "success";
         } catch (SchedulerException e) {
-            result = "EXCEPTION : " + e.getMessage();
+            result = "exception : " + e.getMessage();
         }
         return "refresh all jobs : " + result;
     }

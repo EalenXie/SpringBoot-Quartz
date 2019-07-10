@@ -7,7 +7,6 @@ import org.quartz.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -26,9 +25,7 @@ public class DynamicJobService {
 
     //从数据库中加载获取到所有Job
     public List<JobEntity> loadJobs() {
-        List<JobEntity> list = new ArrayList<>();
-        repository.findAll().forEach(list::add);
-        return list;
+        return repository.findAll();
     }
 
     //获取JobDataMap.(Job参数对象)
@@ -54,6 +51,7 @@ public class DynamicJobService {
                 .storeDurably()
                 .build();
     }
+
     //获取Trigger (Job的触发器,执行规则)
     public Trigger getTrigger(JobEntity job) {
         return TriggerBuilder.newTrigger()
