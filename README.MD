@@ -3,7 +3,12 @@ SpringBoot整合Quartz作为调度中心使用完整实例
 
 ##### 本例是一个将quartz集成为调度器中心的典型示例,主要用于定时执行一些Job(通常是一些自定义程序或者可执行的jar包)，基于Spring Boot 2.0.1,Quartz 2.2.3。
 
-#### 1. 基本的实现效果: 定时执行一些可执行的Job
+
+如果你只是想要简单的SpringBoot整合Quartz,对定时任务进行 自定义逻辑,启动,暂停,恢复,删除,修改。
+可以参考 : https://github.com/EalenXie/springboot-quartz-simple (这个例子相当于算是个整合Quartz入门的例子,我也做了完整和详细的注释说明)
+
+
+#### 1. 本例基本的实现效果: 定时执行一些可执行的Job
     
 运行效果如图 : 
     
